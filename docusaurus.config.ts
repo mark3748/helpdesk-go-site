@@ -113,10 +113,6 @@ const config: Config = {
               label: 'Grafana Setup Guide',
               to: '/docs/grafana',
             },
-            {
-              label: 'Pending Issues',
-              to: '/docs/pending-issues',
-            },
           ],
         },
         {
