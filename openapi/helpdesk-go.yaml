@@ -1,0 +1,1927 @@
+openapi: 3.1.0
+info:
+  title: Helpdesk API
+  version: 0.1.0
+  description: >-
+    Minimal ticketing API. Uses OIDC bearer JWTs in production, or HttpOnly cookie auth in local mode.
+servers:
+  - url: http://localhost:8080
+    description: Local API
+tags:
+  - name: Health
+  - name: Auth
+  - name: Users
+  - name: Requesters
+  - name: Tickets
+  - name: Comments
+  - name: Attachments
+  - name: Watchers
+  - name: CSAT
+  - name: Metrics
+  - name: Exports
+  - name: Events
+  - name: Assets
+  - name: Teams
+  - name: SLAs
+  - name: KnowledgeBase
+  - name: Webhooks
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+# Cross-origin requests are limited to origins set via the ALLOWED_ORIGINS env var.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth
+  schemas:
+    UserSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        external_id: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+        display_name: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+    AuthUser:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        external_id: { type: string }
+        email: { type: string, format: email }
+        display_name: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+    Ticket:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string }
+        title: { type: string }
+        description: { type: string }
+        requester_id: { type: string, format: uuid }
+        requester: { type: string }
+        assignee_id: 
+          type: [string, "null"]
+          format: uuid
+        team_id: 
+          type: [string, "null"]
+          format: uuid
+        priority: { type: integer, minimum: 1, maximum: 4 }
+        urgency: 
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 4
+        category: 
+          type: [string, "null"]
+        subcategory: 
+          type: [string, "null"]
+        status: { type: string }
+        scheduled_at: 
+          type: [string, "null"]
+          format: date-time
+        due_at: 
+          type: [string, "null"]
+          format: date-time
+        source: { type: string }
+        custom_json: { type: object }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        sla:
+          $ref: '#/components/schemas/SLAStatus'
+    SLAStatus:
+      type: object
+      properties:
+        policy_id: { type: string, format: uuid }
+        response_elapsed_ms: { type: integer }
+        resolution_elapsed_ms: { type: integer }
+        response_target_mins: { type: integer }
+        resolution_target_mins: { type: integer }
+        paused: { type: boolean }
+        reason: 
+          type: [string, "null"]
+    Comment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        ticket_id: { type: string, format: uuid }
+        author_id: { type: string, format: uuid }
+        body_md: { type: string }
+        is_internal: { type: boolean }
+        created_at: { type: string, format: date-time }
+    Attachment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        filename: { type: string }
+        bytes: { type: integer, format: int64 }
+        mime: 
+          type: [string, "null"]
+        created_at: { type: string, format: date-time }
+    Requester:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        display_name: { type: string }
+    CreateRequesterRequest:
+      type: object
+      required: [email, display_name]
+      properties:
+        email: { type: string, format: email }
+        display_name: { type: string }
+    UpdateRequesterRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        display_name: { type: string }
+    CreateTicketRequest:
+      type: object
+      required: [title, requester_id, priority]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        requester_id: { type: string, format: uuid }
+        priority: { type: integer, minimum: 1, maximum: 4 }
+        urgency: { type: integer, minimum: 1, maximum: 4 }
+        category: { type: string }
+        subcategory: { type: string }
+        custom_json: { type: object }
+    UpdateTicketRequest:
+      type: object
+      properties:
+        status: { type: string }
+        assignee_id: { type: string, format: uuid }
+        priority: { type: integer, minimum: 1, maximum: 4 }
+        urgency: { type: integer, minimum: 1, maximum: 4 }
+        scheduled_at: { type: string, format: date-time }
+        due_at: { type: string, format: date-time }
+        custom_json: { type: object }
+    CommentRequest:
+      type: object
+      required: [body_md]
+      properties:
+        body_md: { type: string }
+        is_internal: { type: boolean }
+        author_id: { type: string, format: uuid }
+    WatcherRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id: { type: string, format: uuid }
+    RoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { type: string }
+    ExportTicketsRequest:
+      type: object
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          items: { type: string, format: uuid }
+    ExportJobAccepted:
+      type: object
+      properties:
+        job_id: { type: string }
+    ExportJobStatus:
+      type: object
+      properties:
+        status: { type: string }
+        url: { type: string, format: uri }
+        error: { type: string }
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+    # Asset Management Schemas
+    AssetCondition:
+      type: string
+      enum: [excellent, good, fair, poor, broken]
+    AssetStatus:
+      type: string
+      enum: [active, inactive, maintenance, retired, disposed]
+    AssetCategory:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        parent_id: 
+          type: [string, "null"]
+          format: uuid
+        custom_fields: { type: object }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Asset:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_tag: { type: string }
+        name: { type: string }
+        description: 
+          type: [string, "null"]
+        category_id: 
+          type: [string, "null"]
+          format: uuid
+        status: { $ref: '#/components/schemas/AssetStatus' }
+        condition: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetCondition'
+            - type: "null"
+        purchase_price: 
+          type: [number, "null"]
+        purchase_date: 
+          type: [string, "null"]
+          format: date-time
+        warranty_expiry: 
+          type: [string, "null"]
+          format: date-time
+        depreciation_rate: 
+          type: [number, "null"]
+        current_value: 
+          type: [number, "null"]
+        serial_number: 
+          type: [string, "null"]
+        model: 
+          type: [string, "null"]
+        manufacturer: 
+          type: [string, "null"]
+        location: 
+          type: [string, "null"]
+        assigned_to_user_id: 
+          type: [string, "null"]
+          format: uuid
+        assigned_at: 
+          type: [string, "null"]
+          format: date-time
+        custom_fields: { type: object }
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        category: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetCategory'
+            - type: "null"
+        assigned_user: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+        created_by_user: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+    AssetUser:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        display_name: 
+          type: [string, "null"]
+    AssetListResponse:
+      type: object
+      properties:
+        assets:
+          type: array
+          items: { $ref: '#/components/schemas/Asset' }
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+        pages: { type: integer }
+    CreateAssetRequest:
+      type: object
+      required: [asset_tag, name]
+      properties:
+        asset_tag: { type: string }
+        name: { type: string }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/AssetStatus' }
+        condition: { $ref: '#/components/schemas/AssetCondition' }
+        purchase_price: { type: number }
+        purchase_date: { type: string, format: date-time }
+        warranty_expiry: { type: string, format: date-time }
+        depreciation_rate: { type: number }
+        serial_number: { type: string }
+        model: { type: string }
+        manufacturer: { type: string }
+        location: { type: string }
+        custom_fields: { type: object }
+    UpdateAssetRequest:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        category_id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/AssetStatus' }
+        condition: { $ref: '#/components/schemas/AssetCondition' }
+        purchase_price: { type: number }
+        purchase_date: { type: string, format: date-time }
+        warranty_expiry: { type: string, format: date-time }
+        depreciation_rate: { type: number }
+        current_value: { type: number }
+        serial_number: { type: string }
+        model: { type: string }
+        manufacturer: { type: string }
+        location: { type: string }
+        custom_fields: { type: object }
+    notes: { type: string }
+    AssignAssetRequest:
+      type: object
+      properties:
+        assigned_to_user_id: 
+          type: [string, "null"]
+          format: uuid
+        notes: { type: string }
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        parent_id: { type: string, format: uuid }
+        custom_fields: { type: object }
+    AssetCheckout:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        checked_out_to_user_id: { type: string, format: uuid }
+        checked_out_by_user_id: { type: string, format: uuid }
+        checked_out_at: { type: string, format: date-time }
+        expected_return_date: 
+          type: [string, "null"]
+          format: date-time
+        actual_return_date: 
+          type: [string, "null"]
+          format: date-time
+        checkout_notes: 
+          type: [string, "null"]
+        return_notes: 
+          type: [string, "null"]
+        condition_at_checkout: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetCondition'
+            - type: "null"
+        condition_at_return: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetCondition'
+            - type: "null"
+        status: { type: string }
+        asset: 
+          anyOf:
+            - $ref: '#/components/schemas/Asset'
+            - type: "null"
+        checked_out_to_user: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+        checked_out_by_user: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+    CheckoutRequest:
+      type: object
+      required: [asset_id, checked_out_to_user_id]
+      properties:
+        asset_id: { type: string, format: uuid }
+        checked_out_to_user_id: { type: string, format: uuid }
+        expected_return_date: { type: string, format: date-time }
+        checkout_notes: { type: string }
+        condition_at_checkout: { $ref: '#/components/schemas/AssetCondition' }
+        requires_approval: { type: boolean }
+    CheckinRequest:
+      type: object
+      required: [checkout_id]
+      properties:
+        checkout_id: { type: string, format: uuid }
+        return_notes: { type: string }
+        condition_at_return: { $ref: '#/components/schemas/AssetCondition' }
+        maintenance_needed: { type: boolean }
+    AssetHistory:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        action: { type: string }
+        actor_id: 
+          type: [string, "null"]
+          format: uuid
+        old_values: { type: object }
+        new_values: { type: object }
+        notes: 
+          type: [string, "null"]
+        created_at: { type: string, format: date-time }
+        asset: 
+          anyOf:
+            - $ref: '#/components/schemas/Asset'
+            - type: "null"
+        actor: 
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+    AssetAssignment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        assigned_to_user_id: 
+          type: [string, "null"]
+          format: uuid
+        assigned_by_user_id: { type: string, format: uuid }
+        assigned_at: { type: string, format: date-time }
+        unassigned_at: 
+          type: [string, "null"]
+          format: date-time
+        notes: 
+          type: [string, "null"]
+        status: { type: string }
+        asset: 
+          anyOf:
+            - $ref: '#/components/schemas/Asset'
+            - type: "null"
+        assigned_user:
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+        assigned_by:
+          anyOf:
+            - $ref: '#/components/schemas/AssetUser'
+            - type: "null"
+    Team:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+      required: [id, name]
+    SLA:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        priority: { type: integer }
+        response_target_mins: { type: integer }
+        resolution_target_mins: { type: integer }
+        update_cadence_mins:
+          type: [integer, "null"]
+      required: [id, name, priority, response_target_mins, resolution_target_mins]
+    KBArticle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        title: { type: string }
+        body_md: { type: string }
+      required: [id, slug, title, body_md]
+    EmailInboundPayload:
+      type: object
+      properties:
+        raw_store_key: { type: string }
+        parsed_json: { type: object }
+        message_id: { type: string }
+      required: [raw_store_key, parsed_json]
+paths:
+  # Asset Management Endpoints
+  /asset-categories:
+    get:
+      tags: [Assets]
+      summary: List asset categories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AssetCategory' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Assets]
+      summary: Create asset category
+      description: Requires `admin` or `manager` role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCategoryRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssetCategory' }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /asset-categories/{id}:
+    get:
+      tags: [Assets]
+      summary: Get asset category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssetCategory' }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets:
+    get:
+      tags: [Assets]
+      summary: List assets
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Search query
+        - in: query
+          name: category_id
+          schema: { type: string, format: uuid }
+        - in: query
+          name: status
+          schema: 
+            type: array
+            items: { $ref: '#/components/schemas/AssetStatus' }
+        - in: query
+          name: condition
+          schema: { $ref: '#/components/schemas/AssetCondition' }
+        - in: query
+          name: assigned_to
+          schema: { type: string, format: uuid }
+        - in: query
+          name: manufacturer
+          schema: { type: string }
+        - in: query
+          name: location
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: sort_by
+          schema: { type: string }
+        - in: query
+          name: sort_order
+          schema: { type: string, enum: [asc, desc] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssetListResponse' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Assets]
+      summary: Create asset
+      description: Requires `admin` or `manager` role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAssetRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '400': { description: Bad Request }
+        '409': { description: Asset tag already exists }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/{id}:
+    get:
+      tags: [Assets]
+      summary: Get asset
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    patch:
+      tags: [Assets]
+      summary: Update asset
+      description: Requires `admin` or `manager` role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAssetRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '400': { description: Bad Request }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    delete:
+      tags: [Assets]
+      summary: Delete asset
+      description: Requires `admin` role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/{id}/assign:
+    post:
+      tags: [Assets]
+      summary: Assign asset to user
+      description: Requires `admin` or `manager` role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignAssetRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '400': { description: Bad Request }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/{id}/checkout:
+    post:
+      tags: [Assets]
+      summary: Checkout asset
+      description: Requires `admin` or `manager` role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckoutRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssetCheckout' }
+        '400': { description: Bad Request }
+        '404': { description: Asset not found }
+        '409': { description: Asset already checked out }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/checkin:
+    post:
+      tags: [Assets]
+      summary: Checkin asset
+      description: Requires `admin` or `manager` role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckinRequest' }
+      responses:
+        '200': { description: OK }
+        '400': { description: Bad Request }
+        '404': { description: Checkout not found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/checkouts/active:
+    get:
+      tags: [Assets]
+      summary: List active checkouts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AssetCheckout' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/checkouts/overdue:
+    get:
+      tags: [Assets]
+      summary: List overdue checkouts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AssetCheckout' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/{id}/history:
+    get:
+      tags: [Assets]
+      summary: Get asset history
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items: { $ref: '#/components/schemas/AssetHistory' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  limit: { type: integer }
+                  pages: { type: integer }
+        '400': { description: Bad Request }
+        '404': { description: Asset not found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /assets/{id}/assignments:
+    get:
+      tags: [Assets]
+      summary: Get asset assignments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AssetAssignment' }
+        '400': { description: Bad Request }
+        '404': { description: Asset not found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  # Existing endpoints below
+  /livez:
+    get:
+      operationId: healthLiveness
+      tags: [Health]
+      summary: Liveness check
+      security: []
+      responses:
+        '200': { description: OK }
+  /readyz:
+    get:
+      operationId: healthReadiness
+      tags: [Health]
+      summary: Readiness check
+      security: []
+      responses:
+        '200': { description: OK }
+        '500': { description: Dependency failure }
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+  /login:
+    post:
+      operationId: authLogin
+      tags: [Auth]
+      summary: Login (local mode)
+      description: Enabled only when `AUTH_MODE=local`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: OK }
+        '400': { description: Bad Request }
+        '401': { description: Unauthorized }
+        '500': { description: Server Error }
+  /logout:
+    post:
+      operationId: authLogout
+      tags: [Auth]
+      summary: Logout (local mode)
+      security: []
+      responses:
+        '200': { description: OK }
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [Users]
+      summary: Current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401': { description: Unauthorized }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /me/profile:
+    get:
+      tags: [Users]
+      summary: Current user's profile (local auth)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email: { type: string, format: email }
+                  display_name: { type: string }
+        '401': { description: Unauthorized }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    patch:
+      tags: [Users]
+      summary: Update current user's profile (local auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                display_name: { type: string }
+      responses:
+        '200': { description: OK }
+        '409': { description: Profile managed by identity provider }
+        '401': { description: Unauthorized }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /me/password:
+    post:
+      tags: [Users]
+      summary: Change password (local auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password: { type: string }
+                new_password: { type: string, minLength: 8 }
+      responses:
+        '200': { description: OK }
+        '409': { description: Password managed by identity provider }
+        '401': { description: Unauthorized }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /events:
+    get:
+      tags: [Events]
+      summary: Event stream
+      description: Server-sent events for ticket and queue updates. Heartbeat comments (`:hb`) are sent about every 30s.
+      responses:
+        '200':
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: string
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /users/{id}/roles:
+    get:
+      tags: [Users]
+      summary: List roles for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Users]
+      summary: Add role to a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoleRequest' }
+      responses:
+        '201': { description: Created }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /users/{id}/roles/{role}:
+    delete:
+      tags: [Users]
+      summary: Remove role from a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: role
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /requesters:
+    post:
+      tags: [Requesters]
+      summary: Create requester
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRequesterRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requester' }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /requesters/{id}:
+    get:
+      tags: [Requesters]
+      summary: Get requester
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requester' }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    patch:
+      tags: [Requesters]
+      summary: Update requester
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateRequesterRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Requester' }
+        '400': { description: Bad Request }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets:
+    get:
+      tags: [Tickets]
+      summary: List tickets
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: priority
+          schema: { type: integer }
+        - in: query
+          name: team
+          schema: { type: string, format: uuid }
+        - in: query
+          name: assignee
+          schema: { type: string, format: uuid }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: cursor
+          description: |
+            Pagination cursor. Accepts either:
+            - A timestamp in RFC3339/RFC3339Nano (legacy form), or
+            - A composite value "<RFC3339Nano>|<id>" returned by the API, which
+              prevents skipping items when multiple rows share the same timestamp.
+          schema:
+            type: string
+          examples:
+            legacy:
+              value: "2024-01-02T03:04:05Z"
+            composite:
+              value: "2024-01-02T03:04:05.123456Z|00000000-0000-0000-0000-000000000123"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Ticket' }
+                  next_cursor:
+                    type: string
+                    description: Composite cursor of the form "<RFC3339Nano>|<id>" for stable keyset pagination.
+                    example: "2024-01-02T03:04:05.123456Z|00000000-0000-0000-0000-000000000123"
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Tickets]
+      summary: Create ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTicketRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  number: { type: string }
+                  status: { type: string }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationError' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}:
+    get:
+      tags: [Tickets]
+      summary: Get ticket
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ticket' }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    patch:
+      tags: [Tickets]
+      summary: Update ticket
+      description: Requires `agent` role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTicketRequest' }
+      responses:
+        '200': { description: OK }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/comments:
+    get:
+      tags: [Comments]
+      summary: List public comments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Comment' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Comments]
+      summary: Add comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommentRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/attachments:
+    get:
+      tags: [Attachments]
+      summary: List attachments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Attachment' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Attachments]
+      summary: Finalize attachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attachment_id, filename, bytes]
+              properties:
+                attachment_id: { type: string, format: uuid }
+                filename: { type: string }
+                bytes: { type: integer, format: int64 }
+                mime: { type: string }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/attachments/presign:
+    post:
+      tags: [Attachments]
+      summary: Presign attachment upload
+      description: |
+        Returns an upload URL and headers. When using MinIO/S3, `upload_url` is a presigned S3 URL.
+        When using filesystem storage in dev, `upload_url` is an internal API path under `/api/attachments/upload/{attachment_id}`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, bytes]
+              properties:
+                filename: { type: string }
+                bytes: { type: integer, format: int64 }
+                mime: { type: string }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url: { type: string }
+                  headers:
+                    type: object
+                    additionalProperties: { type: string }
+                  attachment_id: { type: string, format: uuid }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (admin)
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Case-insensitive substring match on email, username, or display_name.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/UserSummary' }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      tags: [Users]
+      summary: Create local user (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                email: { type: string, format: email }
+                display_name: { type: string }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201': { description: Created }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /users/{id}:
+    get:
+      operationId: getUserByIdAdmin
+      tags: [Users]
+      summary: Get user (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserSummary' }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  # (POST /users section merged under /users above)
+  /roles:
+    get:
+      operationId: listRoles
+      tags: [Users]
+      summary: List available roles (admin)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /metrics/agent:
+    get:
+      operationId: getAgentMetrics
+      tags: [Metrics]
+      summary: Agent metrics (per-status counts for current user)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { type: integer }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /metrics/manager:
+    get:
+      operationId: getManagerMetrics
+      tags: [Metrics]
+      summary: Manager metrics (global per-status counts)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { type: integer }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/attachments/{attID}:
+    get:
+      operationId: downloadAttachment
+      tags: [Attachments]
+      summary: Download attachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '302': { description: Redirect to object storage }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    delete:
+      operationId: deleteAttachment
+      tags: [Attachments]
+      summary: Delete attachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: attID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/watchers:
+    get:
+      operationId: listWatchers
+      tags: [Watchers]
+      summary: List watcher user IDs
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string, format: uuid }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      operationId: addWatcher
+      tags: [Watchers]
+      summary: Add watcher
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WatcherRequest' }
+      responses:
+        '201': { description: Created }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /tickets/{id}/watchers/{userID}:
+    delete:
+      operationId: removeWatcher
+      tags: [Watchers]
+      summary: Remove watcher
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: userID
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /csat/{token}:
+    get:
+      operationId: getCsatForm
+      tags: [CSAT]
+      summary: CSAT form
+      description: Public endpoint embedded in emails.
+      security: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            text/html:
+              schema: { type: string }
+        '500': { description: Server Error }
+    post:
+      operationId: submitCsatScore
+      tags: [CSAT]
+      summary: Submit CSAT score
+      description: Public endpoint embedded in emails.
+      security: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [score]
+              properties:
+                score:
+                  type: string
+                  enum: [good, bad]
+      responses:
+        '200': { description: OK }
+        '400': { description: Invalid score }
+        '404': { description: Invalid token }
+        '500': { description: Server Error }
+  /metrics/sla:
+    get:
+      operationId: getSlaMetrics
+      tags: [Metrics]
+      summary: SLA attainment
+      description: Requires `agent` role.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  met: { type: integer }
+                  sla_attainment: { type: number }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /metrics/resolution:
+    get:
+      operationId: getResolutionMetrics
+      tags: [Metrics]
+      summary: Average resolution time
+      description: Requires `agent` role.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avg_resolution_ms: { type: number }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /metrics/tickets:
+    get:
+      operationId: getTicketVolumeMetrics
+      tags: [Metrics]
+      summary: Ticket volume per day (30)
+      description: Requires `agent` role.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  daily:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day: { type: string, format: date }
+                        count: { type: integer }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /exports/tickets:
+    post:
+      operationId: exportTickets
+      tags: [Exports]
+      summary: Export tickets to CSV
+      description: Requires object store configuration. Requires `agent` role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExportTicketsRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportJobAccepted' }
+        '400': { description: Bad Request }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+  /exports/tickets/{job_id}:
+    get:
+      operationId: getExportJobStatus
+      tags: [Exports]
+      summary: Check export job status
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportJobStatus' }
+        '404': { description: Not Found }
+        '500': { description: Server Error }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /teams:
+    get:
+      operationId: listTeams
+      tags: [Teams]
+      summary: List teams
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Team' }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /slas:
+    get:
+      operationId: listSLAs
+      tags: [SLAs]
+      summary: List SLA policies
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SLA' }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /kb:
+    get:
+      operationId: searchKB
+      tags: [KnowledgeBase]
+      summary: Search knowledge base articles
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/KBArticle' }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    post:
+      operationId: createKB
+      tags: [KnowledgeBase]
+      summary: Create knowledge base article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KBArticle' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KBArticle' }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /kb/{slug}:
+    get:
+      operationId: getKB
+      tags: [KnowledgeBase]
+      summary: Get knowledge base article
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KBArticle' }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    put:
+      operationId: updateKB
+      tags: [KnowledgeBase]
+      summary: Update knowledge base article
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KBArticle' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KBArticle' }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+    delete:
+      operationId: deleteKB
+      tags: [KnowledgeBase]
+      summary: Delete knowledge base article
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: No Content }
+        '404': { description: Not Found }
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /webhooks/email-inbound:
+    post:
+      operationId: emailInbound
+      tags: [Webhooks]
+      summary: Accept inbound email webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailInboundPayload' }
+      responses:
+        '202': { description: Accepted }
+      security: []
+

@@ -18,9 +18,19 @@ const sidebars: SidebarsConfig = {
     'helm-install',
     'discord',
     'deployment-guide',
-    'api',
     'grafana',
-  ],
+  {
+  type: 'category',
+    label: 'Helpdesk API',
+    link: {
+      type: 'generated-index',
+      title: 'Helpdesk API',
+      description: 'Docs for our Helpdesk endpoints Guide',
+      slug: '/category/helpdesk-api',
+    },
+    items: require('./docs/openapi/sidebar.js'), 
+    },
+    ],
 };
 
 export default sidebars;

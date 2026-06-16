@@ -41,6 +41,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          docItemComponent: '@theme/ApiItem',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           // editUrl:
@@ -67,7 +68,28 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
-
+  
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "api", // plugin id
+        docsPluginId: "classic", // configured for preset-classic
+        config: {
+          helpdesk: {
+            specPath: "openapi/helpdesk-go.yaml",
+            outputDir: "docs/openapi",
+            maskCredentials: false, // Disable credential masking in code snippets
+            sidebarOptions: {
+              groupPathsBy: "tag",
+            },
+          } satisfies OpenApiPlugin.Options,
+        }
+      },
+    ]
+  ],
+  themes: ["docusaurus-theme-openapi-docs"],
+  
   themeConfig: {
     // Replace with your project's social card
     image: 'img/helpdesk-go-logo-transparent.png',
@@ -102,8 +124,8 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'API Reference',
-              to: '/docs/api',
+              label: 'Quickstart',
+              to: '/docs/quickstart',
             },
             {
               label: 'Deployment Guide',
