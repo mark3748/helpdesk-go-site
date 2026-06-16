@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"slug":{"type":"string"},"title":{"type":"string"},"body_md":{"type":"string"}},"required":["id","slug","title","body_md"],"title":"KBArticle"}}}}}}}

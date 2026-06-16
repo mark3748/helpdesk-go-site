@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["attachment_id","filename","bytes"],"properties":{"attachment_id":{"type":"string","format":"uuid"},"filename":{"type":"string"},"bytes":{"type":"integer","format":"int64"},"mime":{"type":"string"}}}}}}}

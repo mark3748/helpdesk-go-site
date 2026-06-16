@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["filename","bytes"],"properties":{"filename":{"type":"string"},"bytes":{"type":"integer","format":"int64"},"mime":{"type":"string"}}}}}}}

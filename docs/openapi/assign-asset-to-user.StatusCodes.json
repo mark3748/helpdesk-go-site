@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","properties":{"message":{"type":"string"}}}}}},"400":{"description":"Bad Request"},"404":{"description":"Not Found"},"500":{"description":"Server Error"}}}

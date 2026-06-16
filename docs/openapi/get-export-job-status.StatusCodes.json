@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"Status","content":{"application/json":{"schema":{"type":"object","properties":{"status":{"type":"string"},"url":{"type":"string","format":"uri"},"error":{"type":"string"}},"title":"ExportJobStatus"}}}},"404":{"description":"Not Found"},"500":{"description":"Server Error"}}}

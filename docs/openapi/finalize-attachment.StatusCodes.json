@@ -1,0 +1,1 @@
+{"responses":{"201":{"description":"Created","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string","format":"uuid"}}}}}},"400":{"description":"Bad Request"},"500":{"description":"Server Error"}}}

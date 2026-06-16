@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["name"],"properties":{"name":{"type":"string"},"description":{"type":"string"},"parent_id":{"type":"string","format":"uuid"},"custom_fields":{"type":"object"}},"title":"CreateCategoryRequest"}}}}}

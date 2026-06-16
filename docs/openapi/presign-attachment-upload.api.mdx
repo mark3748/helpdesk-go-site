@@ -1,0 +1,72 @@
+---
+id: presign-attachment-upload
+title: "Presign attachment upload"
+description: "Returns an upload URL and headers. When using MinIO/S3, `upload_url` is a presigned S3 URL."
+sidebar_label: "Presign attachment upload"
+hide_title: true
+hide_table_of_contents: true
+api: eJzdVU2P2zYQ/SvEnFpAtZwmLQLdnG2KbJpgDduLPThGdizO2owlkiGpTQxB/70YUv52g6LH+mKRnBnOezNv2ELAlYdiDqMQsFzXpIOHRQaSfOmUDcpoKGBCoXHaC9SisZVBKe4nHwRqKdaEkpwfiIc1adF4pVfio9K3d/n0ZSYek/XnxlWPQnmBwjryaqVJiulLDjL4pI88n1RFfusD1cIH43BFQmkh6flKKC2UDuQ0VmI0vhUWw1o0WpITjzlaleMBUJ588/aw91nJ7nHwSUMGFh3WFMgxDy0oBszRIAONNUEBSkIGjr42ypGEIriGMvDlmmqEooWwtWzlg1N6BRk8GVdjgAKaRknoukVyJh/eGLllj/NYpdGBdOAjtLZSJTLx+RfP7LeXV5nlFyrDSVJzYPJiwhkst4FiGa0zllxQ5Nl7b3GRdLfzOZwwuytyx3iUDr+/YttaXQ0Sf5yUt0b7FO3X4Qv+O+2nG0cYiFn9z8hPkR2a4yq2vkuvxUEpFV+J1fgk4jm0DE6a59/UPbHxaji8JOANSjFJPcH5/XbNZkrumZx465xxMQFPZeNU2MY2XRI6cqMmrKGYL7qshdKYjaL9ziKDmsLaSG5n4yNn3NUF5EGVGwo+b5XsTnTSqxP4Lr48KSKyCusQbJHnlSmxWhsfitfD10M4nxQf+JgFCZzALuMplzHxepz3nkKODb2keJ2MuJHjx587Yt8/zJiuY6T7GGjVX7SFLAk4mRwkjGzMJHJnTQ5qfPsda1vRqToOJe1FMdy1/FFPKf1k4vUqsD+8o8pK8psIPgNmL1EyHLwYXBL1UWlVYyVSLXj4jca3A3HvyYu72z9uRIIu3j/MPA9B64xsSnbOhHHiXQj2TldbkYAKxsdmsTyiNpIGnCQXvsYopR7aOJVYHMrej/TzDNuDNv/f87/vn0DfQ24rVJqJ6ydJUswcesVABkV8DI6Cx1mUZLPIgJXBDm27RE/3ruo63v7akGPdLjJ4RqdwyS0zb0Eqz98SiiesPP2gBD9N+lH/s/innHdC0KyCZ6waXkEGG9qmR6xb7GdhvD0d3KQ7fpmx+8HxYhzzjEkeo7IkG35oezx9xnfTGWupf/y4OaEAh9/4AcNvKUkTMccREfdaqFCvGlyxbYoZh/Cp6M8GRUR1lYa2TRYzsyHddXtWAq+ZmK77G23zHgc=
+sidebar_class_name: "post api-method"
+info_path: docs/openapi/helpdesk-api
+custom_edit_url: null
+mask_credentials: false
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Presign attachment upload"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/tickets/{id}/attachments/presign"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Returns an upload URL and headers. When using MinIO/S3, `upload_url` is a presigned S3 URL.
+When using filesystem storage in dev, `upload_url` is an internal API path under `/api/attachments/upload/{attachment_id}`.
+
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  {...require("./presign-attachment-upload.ParamsDetails.json")}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./presign-attachment-upload.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./presign-attachment-upload.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      

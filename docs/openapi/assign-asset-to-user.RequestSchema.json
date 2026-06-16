@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"assigned_to_user_id":{"type":["string","null"],"format":"uuid"},"notes":{"type":"string"}},"title":"AssignAssetRequest"}}}}}

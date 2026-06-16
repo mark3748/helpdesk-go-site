@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["body_md"],"properties":{"body_md":{"type":"string"},"is_internal":{"type":"boolean"},"author_id":{"type":"string","format":"uuid"}},"title":"CommentRequest"}}}}}

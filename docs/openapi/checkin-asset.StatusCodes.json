@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK"},"400":{"description":"Bad Request"},"404":{"description":"Checkout not found"},"500":{"description":"Server Error"}}}

@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","properties":{"total":{"type":"integer"},"met":{"type":"integer"},"sla_attainment":{"type":"number"}}}}}},"500":{"description":"Server Error"}}}

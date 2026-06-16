@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"external_id":{"type":"string"},"email":{"type":"string","format":"email"},"display_name":{"type":"string"},"roles":{"type":"array","items":{"type":"string"}}},"title":"AuthUser"}}}},"401":{"description":"Unauthorized"}}}

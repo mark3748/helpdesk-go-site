@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","format":"email"},"display_name":{"type":"string"}}}}}},"401":{"description":"Unauthorized"}}}

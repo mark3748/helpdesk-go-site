@@ -1,0 +1,1 @@
+{"responses":{"201":{"description":"Created","content":{"application/json":{"schema":{"type":"object","properties":{"upload_url":{"type":"string"},"headers":{"type":"object","additionalProperties":{"type":"string"}},"attachment_id":{"type":"string","format":"uuid"}}}}}},"400":{"description":"Bad Request"},"500":{"description":"Server Error"}}}

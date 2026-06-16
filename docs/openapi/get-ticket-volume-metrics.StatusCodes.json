@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","properties":{"daily":{"type":"array","items":{"type":"object","properties":{"day":{"type":"string","format":"date"},"count":{"type":"integer"}}}}}}}}},"500":{"description":"Server Error"}}}
